@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">repository-pattern-demo</string>
+    <string name="action_settings">Settings</string>
+</resources>
