@@ -5,6 +5,8 @@ import com.example.repository_pattern_demo.data.model.User;
 import java.util.List;
 
 import retrofit2.http.GET;
+import retrofit2.http.Path;
+import retrofit2.http.Query;
 import rx.Observable;
 
 /*
@@ -25,6 +27,9 @@ import rx.Observable;
 public interface GithubApi {
 
     @GET("users")
-    Observable<List<User>> get();
+    Observable<List<User>> get(@Query("since") long since);
+
+    @GET("users/{username}")
+    Observable<User> get(@Path("username") String username);
 
 }

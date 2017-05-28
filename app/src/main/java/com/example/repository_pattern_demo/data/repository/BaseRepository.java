@@ -22,8 +22,9 @@ import rx.Observable;
 public interface BaseRepository<T> {
     Observable<T> add(T item);
     Observable<List<T>> add(List<T> items);
-    Observable<T> query(long id);
+    Observable<T> query(String username);
     Observable<List<T>> query();
+    Observable<List<T>> queryPaginated(long lastId);
     Observable<T> update(T item);
     Observable<Integer> remove(T item);
 }

@@ -22,6 +22,16 @@ selectAll:
 SELECT *
 FROM users;
 
+selectById:
+SELECT *
+FROM users
+WHERE id=?;
+
+selectByLogin:
+SELECT *
+FROM users
+WHERE login=?;
+
 insertRow:
 INSERT INTO
 users(login, id, avatar_url, gravatar_id, url, html_url, followers_url, following_url, gists_url, starred_url, subscriptions_url, organizations_url, repos_url, events_url, received_events_url, type, site_admin)

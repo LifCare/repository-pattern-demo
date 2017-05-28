@@ -1,19 +1,29 @@
 package com.example.repository_pattern_demo.ui;
 
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
-import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import com.bumptech.glide.Glide;
 import com.example.repository_pattern_demo.R;
+import com.example.repository_pattern_demo.data.repository.GithubUserRepository;
 
-public class MainActivity extends AppCompatActivity {
+import javax.inject.Inject;
+
+import rx.android.schedulers.AndroidSchedulers;
+import rx.schedulers.Schedulers;
 
 
+public class MainActivity extends AppCompatActivity implements GithubUsersAdapter.LoadMoreListener {
+
+    @Inject GithubUserRepository mGithubUserRepository;
+
+    private RecyclerView mRecyclerView;
+    private GithubUsersAdapter mGithubUsersAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -21,6 +31,15 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
+        mRecyclerView = (RecyclerView) findViewById(R.id.recycler_view);
+        mRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+        mGithubUsersAdapter = new GithubUsersAdapter(Glide.with(this), this);
+        mRecyclerView.setAdapter(mGithubUsersAdapter);
+        mGithubUserRepository.query()
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(mGithubUsersAdapter::addUsers);
     }
 
     @Override
@@ -31,6 +50,14 @@ public class MainActivity extends AppCompatActivity {
 
     public boolean onOptionsItemSelected(MenuItem item) {
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void loadMore(long lastId) {
+        mGithubUserRepository.queryPaginated(lastId)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(mGithubUsersAdapter::addUsers);
     }
 
 }

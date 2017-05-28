@@ -8,6 +8,7 @@ import com.google.auto.value.AutoValue;
 
 import rx.functions.Func1;
 
+
 /*
  * Copyright 2017 Sourabh Verma
  * 
