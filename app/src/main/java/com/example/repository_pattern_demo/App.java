@@ -27,7 +27,7 @@ import timber.log.Timber;
  */
 public class App extends Application {
 
-    private AppComponent appComponent;
+    private AppComponent mAppComponent;
 
     @Override
     public void onCreate() {
@@ -38,10 +38,15 @@ public class App extends Application {
                 return super.createStackElementTag(element) + ":" + element.getLineNumber();
             }
         });
-        appComponent = DaggerAppComponent.builder()
+        mAppComponent = DaggerAppComponent.builder()
                 .appModule(new AppModule(this))
                 .dataModule(new DataModule())
                 .httpModule(new HttpModule())
                 .build();
     }
+
+    public AppComponent component() {
+        return mAppComponent;
+    }
+
 }

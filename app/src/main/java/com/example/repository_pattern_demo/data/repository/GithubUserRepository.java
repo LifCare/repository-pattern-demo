@@ -8,6 +8,7 @@ import java.sql.SQLException;
 import java.util.List;
 
 import rx.Observable;
+import timber.log.Timber;
 
 
 /*
@@ -73,6 +74,7 @@ public class GithubUserRepository implements BaseRepository<User> {
                 long id = mDatabase.executeInsert(User.TABLE_NAME, insertRow.program);
                 if (id == -1) return Observable.error(new SQLException("Failed to insert user"));
             }
+            transaction.markSuccessful();
         } finally {
             transaction.end();
         }
@@ -120,12 +122,15 @@ public class GithubUserRepository implements BaseRepository<User> {
 
     @Override
     public Observable<List<User>> queryPaginated(long lastId) {
-        Observable<List<User>> db = queryFromDb();
         Observable<List<User>> server = mGithubApi.get(lastId).doOnNext(this::addToDb);
-        return Observable.combineLatest(db, Observable.concat(null, server),
-                (dbAddress, serverAddress) -> dbAddress.size() == 0 && serverAddress == null ? null : dbAddress)
-                .filter(addresses -> addresses != null)
-                .distinct();
+        Observable<List<User>> db = queryFromDb()
+                .doOnSubscribe(() -> server.subscribe(users -> { }, Timber::e));
+        return db.publish(u -> Observable.merge(u.take(1).filter(users -> users.size() > 0), u.skip(1)));
+//        return server;
+//        return Observable.combineLatest(db, Observable.concat(null, server),
+//                (dbAddress, serverAddress) -> dbAddress.size() == 0 && serverAddress == null ? null : dbAddress)
+//                .filter(addresses -> addresses != null)
+//                .distinct();
     }
 
     @Override

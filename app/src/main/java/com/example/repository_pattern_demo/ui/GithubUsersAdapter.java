@@ -35,15 +35,17 @@ import java.util.List;
  */
 class GithubUsersAdapter extends RecyclerView.Adapter<GithubUsersAdapter.BaseHolder> {
 
+    private static final int TYPE_USER = 0;
+    private static final int TYPE_LOAD_MORE = 1;
+
+    private boolean isLoadMoreEnabled;
     private List<User> mUsers = new ArrayList<>(0);
     private RequestManager mGlide;
     private LoadMoreListener mLoadMoreListener;
 
-    private static final int TYPE_USER = 0;
-    private static final int TYPE_LOAD_MORE = 1;
-
     public GithubUsersAdapter(RequestManager glide, LoadMoreListener loadMoreListener) {
         mGlide = glide;
+        isLoadMoreEnabled = true;
         mLoadMoreListener = loadMoreListener;
     }
 
@@ -53,9 +55,19 @@ class GithubUsersAdapter extends RecyclerView.Adapter<GithubUsersAdapter.BaseHol
         notifyItemRangeInserted(start, users.size());
     }
 
+    public void setUsers(List<User> users) {
+        mUsers.clear();
+        mUsers.addAll(users);
+        notifyDataSetChanged();
+    }
+
+    public void setIsLoadMoreEnabled(boolean isLoadMoreEnabled) {
+        this.isLoadMoreEnabled = isLoadMoreEnabled;
+    }
+
     @Override
     public int getItemCount() {
-        return mUsers.size() + 1;
+        return mUsers.size() == 0 ? 0 : mUsers.size() + (isLoadMoreEnabled ? 1 : 0);
     }
 
     @Override

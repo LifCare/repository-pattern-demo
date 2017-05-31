@@ -5,6 +5,8 @@ import android.os.Parcelable;
 
 import com.example.epository_pattern_demo.data.db.UserModel;
 import com.google.auto.value.AutoValue;
+import com.google.gson.Gson;
+import com.google.gson.TypeAdapter;
 
 import rx.functions.Func1;
 
@@ -30,6 +32,10 @@ public abstract class User implements UserModel, Parcelable {
     public static final Factory<User> FACTORY = new Factory<>(AutoValue_User::new);
 
     public static final Func1<Cursor, User> MAPPER = FACTORY.selectAllMapper()::map;
+
+    public static TypeAdapter<User> typeAdapter(Gson gson) {
+        return new AutoValue_User.GsonTypeAdapter(gson);
+    }
 
     public static Builder builder() {
         return new AutoValue_User.Builder();

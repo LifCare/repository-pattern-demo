@@ -5,6 +5,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 
 import com.example.repository_pattern_demo.BuildConfig;
 import com.example.repository_pattern_demo.data.DbOpenHelper;
+import com.example.repository_pattern_demo.data.TypeAdapterFactoryImpl;
 import com.example.repository_pattern_demo.data.repository.GithubUserRepository;
 import com.example.repository_pattern_demo.data.rest.GithubApi;
 import com.facebook.stetho.Stetho;
@@ -12,6 +13,10 @@ import com.facebook.stetho.okhttp3.StethoInterceptor;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.TypeAdapter;
+import com.google.gson.TypeAdapterFactory;
+import com.google.gson.reflect.TypeToken;
+import com.readystatesoftware.chuck.ChuckInterceptor;
 import com.squareup.sqlbrite.BriteDatabase;
 import com.squareup.sqlbrite.SqlBrite;
 
@@ -21,7 +26,9 @@ import dagger.Module;
 import dagger.Provides;
 import okhttp3.Cache;
 import okhttp3.OkHttpClient;
+import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Retrofit;
+import retrofit2.adapter.rxjava.RxJavaCallAdapterFactory;
 import retrofit2.converter.gson.GsonConverterFactory;
 import rx.schedulers.Schedulers;
 import timber.log.Timber;
@@ -56,6 +63,7 @@ public class HttpModule {
     @Singleton
     Gson providesGson() {
         GsonBuilder gsonBuilder = new GsonBuilder();
+        gsonBuilder.registerTypeAdapterFactory(TypeAdapterFactoryImpl.create());
         gsonBuilder.setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES);
         return gsonBuilder.create();
     }
@@ -64,8 +72,12 @@ public class HttpModule {
     @Provides
     public OkHttpClient providesOkHttpClient(Context context, Cache cache) {
         Stetho.initializeWithDefaults(context);
+        HttpLoggingInterceptor debugInterceptor = new HttpLoggingInterceptor();
+        debugInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
         return new OkHttpClient.Builder()
                 .addNetworkInterceptor(new StethoInterceptor())
+                .addInterceptor(debugInterceptor)
+                .addInterceptor(new ChuckInterceptor(context).showNotification(true))
                 .cache(cache).build();
     }
 
@@ -74,6 +86,7 @@ public class HttpModule {
     Retrofit providesRetrofit(Gson gson, OkHttpClient okHttpClient) {
         return new Retrofit.Builder()
                 .addConverterFactory(GsonConverterFactory.create(gson))
+                .addCallAdapterFactory(RxJavaCallAdapterFactory.create())
                 .baseUrl("https://api.github.com")
                 .client(okHttpClient)
                 .build();

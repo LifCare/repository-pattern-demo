@@ -9,6 +9,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 
 import com.bumptech.glide.Glide;
+import com.example.repository_pattern_demo.App;
 import com.example.repository_pattern_demo.R;
 import com.example.repository_pattern_demo.data.repository.GithubUserRepository;
 
@@ -16,6 +17,7 @@ import javax.inject.Inject;
 
 import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
+import timber.log.Timber;
 
 
 public class MainActivity extends AppCompatActivity implements GithubUsersAdapter.LoadMoreListener {
@@ -28,6 +30,7 @@ public class MainActivity extends AppCompatActivity implements GithubUsersAdapte
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        ((App) (getApplicationContext())).component().inject(this);
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -39,7 +42,10 @@ public class MainActivity extends AppCompatActivity implements GithubUsersAdapte
         mGithubUserRepository.query()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(mGithubUsersAdapter::addUsers);
+                .subscribe(mGithubUsersAdapter::setUsers, throwable -> {
+                    Timber.e(throwable);
+                    mGithubUsersAdapter.setIsLoadMoreEnabled(false);
+                });
     }
 
     @Override
@@ -57,7 +63,10 @@ public class MainActivity extends AppCompatActivity implements GithubUsersAdapte
         mGithubUserRepository.queryPaginated(lastId)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(mGithubUsersAdapter::addUsers);
+                .subscribe(mGithubUsersAdapter::setUsers, throwable -> {
+                    Timber.e(throwable);
+                    mGithubUsersAdapter.setIsLoadMoreEnabled(false);
+                });
     }
 
 }
